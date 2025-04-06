@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/pages/Reservation.dart';
 import 'package:myapp/pages/BookingHistory.dart'; // เพิ่มการ import หน้า BookingHistory
+//import 'package:myapp/pages/reservation_pageDB.dart';
 
 class Homepage extends StatelessWidget {
   const Homepage({super.key});
@@ -15,7 +16,9 @@ class Homepage extends StatelessWidget {
   void navigateToBookingHistory(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const BookingHistoryPage()), // เพิ่มการเชื่อมไปหน้า BookingHistory
+      MaterialPageRoute(
+        builder: (context) => const BookingHistoryPage(),
+      ), // เพิ่มการเชื่อมไปหน้า BookingHistory
     );
   }
 
@@ -44,8 +47,11 @@ class Homepage extends StatelessWidget {
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () => navigateToReservation(context), // เปลี่ยนที่นี่
+            ),
             label: '',
           ),
         ],
@@ -129,7 +135,10 @@ class Homepage extends StatelessWidget {
                   Column(
                     children: [
                       GestureDetector(
-                        onTap: () => navigateToBookingHistory(context), // เพิ่มการเชื่อมไปหน้า BookingHistory
+                        onTap:
+                            () => navigateToBookingHistory(
+                              context,
+                            ), // เพิ่มการเชื่อมไปหน้า BookingHistory
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),

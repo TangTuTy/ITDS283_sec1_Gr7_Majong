@@ -56,7 +56,68 @@ class ReservationPage extends StatelessWidget {
                 ],
               ),
             ),
-            // เพิ่มคอนเทนต์อื่นๆ ของ ReservationPage ที่นี่ เช่น ข้อความหรือปุ่มต่างๆ
+
+            // ส่วนของข้อมูลตรงกลาง (Reservation List)
+            Expanded(
+              child: ListView.builder(
+                itemCount: 4, // จำนวนรายการที่จะแสดง, ปัจจุบัน 4 รายการ
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[100],
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(2, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // ใส่รูปภาพที่แสดงสถานที่
+                        Image.asset(
+                          'assets/room.png', // ใส่ path ของรูปภาพที่ต้องการ
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                        const SizedBox(width: 16),
+                        // ข้อมูลสถานที่
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Campus Name', // ชื่อสถานที่
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Address or other info', // ข้อมูลที่เกี่ยวกับสถานที่
+                                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // ปุ่มจอง
+                        ElevatedButton(
+                          onPressed: () {
+                            // การจองจะไปทำงานเมื่อกดปุ่มนี้
+                          },
+                          child: const Text('จอง'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
