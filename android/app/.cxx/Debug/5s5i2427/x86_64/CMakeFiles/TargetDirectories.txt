@@ -1,0 +1,2 @@
+/Users/kongpop/Desktop/MobilePJ/ITDS283_sec1_Gr7_Majong/android/app/.cxx/Debug/5s5i2427/x86_64/CMakeFiles/edit_cache.dir
+/Users/kongpop/Desktop/MobilePJ/ITDS283_sec1_Gr7_Majong/android/app/.cxx/Debug/5s5i2427/x86_64/CMakeFiles/rebuild_cache.dir

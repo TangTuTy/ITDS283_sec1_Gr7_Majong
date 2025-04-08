@@ -1,11 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/pages/Homepage.dart'; // Import หน้า Homepage
+import 'package:myapp/pages/RegisReservation.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:myapp/pages/Homepage.dart';
+import 'package:myapp/pages/information.dart'; // ✅ เพิ่มหน้านี้
 
-class ReservationPage extends StatelessWidget {
-  const ReservationPage({super.key});
+class ReservationPage extends StatefulWidget {
+  final Database database;
+  ReservationPage({super.key, required this.database});
+
+  @override
+  State<ReservationPage> createState() => _ReservationPage();
+}
+
+class _ReservationPage extends State<ReservationPage> {
+  List<Map<String, dynamic>> _campus = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshContacts();
+  }
+
+  void _refreshContacts() async {
+    final data = await widget.database.rawQuery('SELECT * FROM campus');
+    setState(() {
+      _campus = data;
+    });
+  }
 
   void navigateToHomepage(BuildContext context) {
-    // ใช้ Navigator.push เพื่อไปหน้า Homepage
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const Homepage()),
@@ -15,7 +38,7 @@ class ReservationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,  
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -25,16 +48,13 @@ class ReservationPage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  // ปุ่มย้อนกลับ
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      // เมื่อกดปุ่มนี้จะย้อนกลับไปหน้า Homepage
                       Navigator.pop(context);
                     },
                   ),
                   const SizedBox(width: 16),
-                  // โลโก้
                   CircleAvatar(
                     radius: 28,
                     backgroundImage: AssetImage('assets/logo.png'),
@@ -57,11 +77,12 @@ class ReservationPage extends StatelessWidget {
               ),
             ),
 
-            // ส่วนของข้อมูลตรงกลาง (Reservation List)
+            // รายการจอง
             Expanded(
               child: ListView.builder(
-                itemCount: 4, // จำนวนรายการที่จะแสดง, ปัจจุบัน 4 รายการ
+                itemCount: _campus.length,
                 itemBuilder: (context, index) {
+                  final place = _campus[index];
                   return Container(
                     margin: const EdgeInsets.all(10),
                     padding: const EdgeInsets.all(16),
@@ -78,37 +99,73 @@ class ReservationPage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        // ใส่รูปภาพที่แสดงสถานที่
-                        Image.asset(
-                          'assets/room.png', // ใส่ path ของรูปภาพที่ต้องการ
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        ),
-                        const SizedBox(width: 16),
-                        // ข้อมูลสถานที่
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // ✅ คลิกฝั่งซ้ายไปหน้า information
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        InformationPage(campus: _campus[index]),
+                              ),
+                            );
+                          },
+                          child: Row(
                             children: [
-                              Text(
-                                'Campus Name', // ชื่อสถานที่
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.asset(
+                                  place["image"],
+                                  width: 120,
+                                  height: 100,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                              Text(
-                                'Address or other info', // ข้อมูลที่เกี่ยวกับสถานที่
-                                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                              const SizedBox(width: 16),
+                              // ข้อมูล
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    place['name']!,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 150,
+                                    child: Text(
+                                      place['location']!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
+
+                        const Spacer(),
+
                         // ปุ่มจอง
                         ElevatedButton(
                           onPressed: () {
-                            // การจองจะไปทำงานเมื่อกดปุ่มนี้
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => Regisreservation(
+                                      campus: _campus[index],
+                                    ),
+                              ),
+                            );
                           },
                           child: const Text('จอง'),
                         ),
@@ -122,7 +179,7 @@ class ReservationPage extends StatelessWidget {
         ),
       ),
 
-      // BottomNavigationBar แบบที่มีโลโก้ตรงกลาง
+      // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF9DE1DB),
         showSelectedLabels: false,
@@ -131,24 +188,21 @@ class ReservationPage extends StatelessWidget {
           BottomNavigationBarItem(
             icon: IconButton(
               icon: const Icon(Icons.calendar_month),
-              onPressed: () => navigateToHomepage(context), // เปลี่ยนเป็นไปหน้า Homepage
+              onPressed: () => navigateToHomepage(context),
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: GestureDetector(
-              onTap: () => navigateToHomepage(context),  // เมื่อคลิกโลโก้ก็ไปหน้า Homepage
-              child: CircleAvatar(
-                radius: 20, // ขนาดของ CircleAvatar
+              onTap: () => navigateToHomepage(context),
+              child: const CircleAvatar(
+                radius: 20,
                 backgroundImage: AssetImage('assets/logo.png'),
               ),
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
         ],
       ),
     );
