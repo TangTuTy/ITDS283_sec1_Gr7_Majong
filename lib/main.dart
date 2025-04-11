@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/firebase_options.dart';
 import 'package:myapp/pages/Homepage.dart';
+import 'package:myapp/pages/login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +17,9 @@ class MaChongApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Homepage(),
+    return MaterialApp(
+      home:
+          FirebaseAuth.instance.currentUser == null ? LoginPage() : Homepage(),
       debugShowCheckedModeBanner: false,
     );
   }

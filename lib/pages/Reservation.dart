@@ -5,8 +5,8 @@ import 'package:myapp/pages/Homepage.dart';
 import 'package:myapp/pages/information.dart'; // ✅ เพิ่มหน้านี้
 
 class ReservationPage extends StatefulWidget {
-  final Database database;
-  ReservationPage({super.key, required this.database});
+  // final Database database;
+  ReservationPage({super.key});
 
   @override
   State<ReservationPage> createState() => _ReservationPage();
@@ -15,21 +15,8 @@ class ReservationPage extends StatefulWidget {
 class _ReservationPage extends State<ReservationPage> {
   List<Map<String, dynamic>> _campus = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _refreshContacts();
-  }
-
-  void _refreshContacts() async {
-    final data = await widget.database.rawQuery('SELECT * FROM campus');
-    setState(() {
-      _campus = data;
-    });
-  }
-
   void navigateToHomepage(BuildContext context) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const Homepage()),
     );
@@ -38,45 +25,63 @@ class _ReservationPage extends State<ReservationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              color: const Color(0xFF397D75),
-              padding: const EdgeInsets.all(16),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: AppBar(
+          backgroundColor: const Color(0xFF397D75),
+          automaticallyImplyLeading: false,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10,
+              ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // ปุ่ม back
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
                       Navigator.pop(context);
                     },
                   ),
-                  const SizedBox(width: 16),
-                  CircleAvatar(
+                  const SizedBox(width: 8),
+                  // โลโก้ + ข้อความ
+                  const CircleAvatar(
                     radius: 28,
                     backgroundImage: AssetImage('assets/logo.png'),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Ma Chong',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'มาจอง',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+          ),
+        ),
+      ),
 
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
             // รายการจอง
             Expanded(
               child: ListView.builder(

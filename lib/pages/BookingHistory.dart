@@ -6,7 +6,7 @@ class BookingHistoryPage extends StatelessWidget {
 
   void navigateToHomepage(BuildContext context) {
     // ใช้ Navigator.push เพื่อไปหน้า Homepage
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const Homepage()),
     );
@@ -15,49 +15,56 @@ class BookingHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,  
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              color: const Color(0xFF397D75),
-              padding: const EdgeInsets.all(16),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: AppBar(
+          backgroundColor: const Color(0xFF397D75),
+          automaticallyImplyLeading: false,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10,
+              ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ปุ่มย้อนกลับ
+                  // ปุ่ม back
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      // เมื่อกดปุ่มนี้จะย้อนกลับไปหน้า Homepage
                       Navigator.pop(context);
                     },
                   ),
-                  const SizedBox(width: 16),
-                  // โลโก้
-                  CircleAvatar(
+                  const SizedBox(width: 8),
+                  // โลโก้ + ข้อความ
+                  const CircleAvatar(
                     radius: 28,
                     backgroundImage: AssetImage('assets/logo.png'),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Ma Chong',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'มาจอง',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            // เพิ่มคอนเทนต์อื่นๆ ของ ReservationPage ที่นี่ เช่น ข้อความหรือปุ่มต่างๆ
-          ],
+          ),
         ),
       ),
 
@@ -70,13 +77,18 @@ class BookingHistoryPage extends StatelessWidget {
           BottomNavigationBarItem(
             icon: IconButton(
               icon: const Icon(Icons.calendar_month),
-              onPressed: () => navigateToHomepage(context), // เปลี่ยนเป็นไปหน้า Homepage
+              onPressed:
+                  () =>
+                      navigateToHomepage(context), // เปลี่ยนเป็นไปหน้า Homepage
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: GestureDetector(
-              onTap: () => navigateToHomepage(context),  // เมื่อคลิกโลโก้ก็ไปหน้า Homepage
+              onTap:
+                  () => navigateToHomepage(
+                    context,
+                  ), // เมื่อคลิกโลโก้ก็ไปหน้า Homepage
               child: CircleAvatar(
                 radius: 20, // ขนาดของ CircleAvatar
                 backgroundImage: AssetImage('assets/logo.png'),
@@ -84,10 +96,7 @@ class BookingHistoryPage extends StatelessWidget {
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
         ],
       ),
     );

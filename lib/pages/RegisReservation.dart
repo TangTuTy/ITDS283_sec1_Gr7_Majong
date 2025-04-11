@@ -36,45 +36,63 @@ class _RegisreservationState extends State<Regisreservation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              color: const Color(0xFF397D75),
-              padding: const EdgeInsets.all(16),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: AppBar(
+          backgroundColor: const Color(0xFF397D75),
+          automaticallyImplyLeading: false,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10,
+              ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // ปุ่ม back
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
                       Navigator.pop(context);
                     },
                   ),
-                  const SizedBox(width: 16),
-                  CircleAvatar(
+                  const SizedBox(width: 8),
+                  // โลโก้ + ข้อความ
+                  const CircleAvatar(
                     radius: 28,
                     backgroundImage: AssetImage('assets/logo.png'),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Ma Chong',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
-                        'Reservation',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        'มาจอง',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+          ),
+        ),
+      ),
 
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
             const SizedBox(height: 16),
 
             // รูป

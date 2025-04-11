@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -50,20 +47,30 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBX_pVJXQEElreIkjNGUIgO1hKKT2mx2iE',
-    appId: '1:575338462666:web:c12070da34ebd973d8a333',
-    messagingSenderId: '575338462666',
-    projectId: 'itds283-2025-q1-99138',
-    authDomain: 'itds283-2025-q1-99138.firebaseapp.com',
-    storageBucket: 'itds283-2025-q1-99138.firebasestorage.app',
-    measurementId: 'G-Z2V7LH3QK2',
+    apiKey: 'AIzaSyChqMVA4gb2eCRU3jfmN_WMAqg329S36pA',
+    appId: '1:267307291692:web:790683d59ebcd7c606ad89',
+    messagingSenderId: '267307291692',
+    projectId: 'ma-chong',
+    authDomain: 'ma-chong.firebaseapp.com',
+    storageBucket: 'ma-chong.firebasestorage.app',
+    measurementId: 'G-QKD6RV5EJE',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBb-D0JKRM93ILliuEycCOg07eltMbljJU',
-    appId: '1:575338462666:android:c7a1bd87ae421532d8a333',
-    messagingSenderId: '575338462666',
-    projectId: 'itds283-2025-q1-99138',
-    storageBucket: 'itds283-2025-q1-99138.firebasestorage.app',
+    apiKey: 'AIzaSyBvl_5-Qig7P4fOMMXPASCjlMvRgAshY-M',
+    appId: '1:267307291692:android:4cfe5d5a0dd5c0aa06ad89',
+    messagingSenderId: '267307291692',
+    projectId: 'ma-chong',
+    storageBucket: 'ma-chong.firebasestorage.app',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCv1fhV1QelBSXCYPWWkf9YBOwKnVqn28s',
+    appId: '1:267307291692:ios:06c09a0cc93c1b1506ad89',
+    messagingSenderId: '267307291692',
+    projectId: 'ma-chong',
+    storageBucket: 'ma-chong.firebasestorage.app',
+    iosBundleId: 'com.example.ma-chong',
+  );
+
 }

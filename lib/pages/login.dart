@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/pages/signup.dart';
 import 'package:myapp/pages/homepage.dart';
@@ -15,21 +16,25 @@ class _LoginPageState extends State<LoginPage> {
   bool rememberMe = false;
   String errorMessage = '';
 
-  final mockEmail = 'p@gmail.com';
-  final mockPassword = '12345678';
-
-  void handleLogin() {
+  void handleLogin() async {
     final email = emailController.text.trim();
     final password = passwordController.text;
-
-    if (email == mockEmail && password == mockPassword) {
-      setState(() => errorMessage = '');
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      print('login susccese');
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Homepage()),
+        MaterialPageRoute(builder: (context) => Homepage()),
       );
-    } else {
-      setState(() => errorMessage = 'Incorrect username or password');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password provided for that user.');
+      }
     }
   }
 
@@ -80,39 +85,15 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 10),
 
-                // Remember & Forgot
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: rememberMe,
-                          onChanged: (value) {
-                            setState(() => rememberMe = value ?? false);
-                          },
-                        ),
-                        const Text("Remember me"),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Forgot Password
-                      },
-                      child: const Text("Forgot Password"),
-                    ),
-                  ],
-                ),
-
                 // Error Message
                 if (errorMessage.isNotEmpty)
                   Text(errorMessage, style: const TextStyle(color: Colors.red)),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 50),
 
                 // Login Button
                 ElevatedButton(
-                  onPressed: handleLogin,
+                  onPressed: () => handleLogin(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF397D75),
                     minimumSize: const Size(150, 45),
@@ -120,7 +101,10 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text('Login', style: TextStyle(fontSize: 16)),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
                 ),
 
                 const SizedBox(height: 20),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/pages/Reservation.dart';
 import 'package:myapp/pages/BookingHistory.dart';
+import 'package:myapp/pages/profile.dart';
 import 'package:sqflite/sqflite.dart'; // เพิ่มการ import หน้า BookingHistory
 import 'package:path/path.dart' as p;
 
@@ -78,7 +79,7 @@ class _HomepageState extends State<Homepage> {
   void navigateToReservation(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ReservationPage(database: _db!)),
+      MaterialPageRoute(builder: (context) => ReservationPage()),
     );
   }
 
@@ -91,9 +92,61 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+  void navigateToprofile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Profilepage(),
+      ), // เพิ่มการเชื่อมไปหน้า BookingHistory
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: AppBar(
+          backgroundColor: const Color(0xFF397D75),
+          automaticallyImplyLeading: false, // ไม่แสดงปุ่ม back โดยอัตโนมัติ
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 35,
+                    backgroundImage: AssetImage('assets/logo.png'),
+                  ),
+                  const SizedBox(width: 16),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Ma Chong',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'information',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
       backgroundColor: Colors.white,
 
       // BottomNavigationBar แบบที่มีโลโก้ตรงกลาง
@@ -119,7 +172,7 @@ class _HomepageState extends State<Homepage> {
           BottomNavigationBarItem(
             icon: IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () => navigateToReservation(context), // เปลี่ยนที่นี่
+              onPressed: () => navigateToprofile(context), // เปลี่ยนที่นี่
             ),
             label: '',
           ),
@@ -129,34 +182,6 @@ class _HomepageState extends State<Homepage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            Container(
-              color: const Color(0xFF397D75),
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: AssetImage('assets/logo.png'),
-                  ),
-                  const SizedBox(width: 16),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Ma Chong',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
-                      Text(
-                        'มาจอง',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
             // Reserve & History buttons
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
