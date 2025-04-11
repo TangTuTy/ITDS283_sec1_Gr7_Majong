@@ -125,7 +125,7 @@ class _RegisreservationState extends State<Regisreservation> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: selectedTime,
-                    hint: Text('09:00 - 11:00'),
+                    hint: Text('Choose your time'),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                     ),
