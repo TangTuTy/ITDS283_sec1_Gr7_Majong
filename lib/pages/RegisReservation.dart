@@ -1,35 +1,212 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Regisreservation extends StatefulWidget {
   final campus;
-  const Regisreservation({super.key, required this.campus});
+  final campusid;
+  const Regisreservation({
+    super.key,
+    required this.campus,
+    required this.campusid,
+  });
 
   @override
   State<Regisreservation> createState() => _RegisreservationState();
 }
 
 class _RegisreservationState extends State<Regisreservation> {
-  DateTime selectedDate = DateTime.now();
-  List<String> timeSlots = [
-    '09:00 - 11:00',
-    '11:00 - 13:00',
-    '13:00 - 15:00',
-    '15:00 - 17:00',
-  ];
+  late DateTime selectedDate;
+  List<String> timeSlots = [];
   String? selectedTime;
 
+  @override
+  void initState() {
+    super.initState();
+    bool isSundayClosed = widget.campus["time"].contains("ปิดวันอาทิตย์");
+    DateTime now = DateTime.now();
+    if (isSundayClosed && now.weekday == DateTime.sunday) {
+      selectedDate = now.add(const Duration(days: 1));
+    } else {
+      selectedDate = now;
+    }
+
+    loadAvailableTimeSlots();
+  }
+
+  List<String> generateTimeSlotsFromText(String text) {
+    final RegExp regex = RegExp(r'(\d{1,2}:\d{2})[–-](\d{1,2}:\d{2})');
+    final match = regex.firstMatch(text);
+
+    if (match == null) return [];
+
+    final start = match.group(1)!;
+    final end = match.group(2)!;
+
+    final startParts = start.split(':').map(int.parse).toList();
+    final endParts = end.split(':').map(int.parse).toList();
+
+    DateTime current = DateTime(0, 1, 1, startParts[0], startParts[1]);
+    DateTime endTime = DateTime(0, 1, 1, endParts[0], endParts[1]);
+
+    List<String> slots = [];
+    const Duration slotDuration = Duration(hours: 2);
+
+    while (current.add(slotDuration).isBefore(endTime) ||
+        current.add(slotDuration).isAtSameMomentAs(endTime)) {
+      final next = current.add(slotDuration);
+      final formatted =
+          "${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')} - "
+          "${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}";
+      slots.add(formatted);
+      current = next;
+    }
+
+    return slots;
+  }
+
+  Future<void> loadAvailableTimeSlots() async {
+    List<String> allSlots = generateTimeSlotsFromText(widget.campus["time"]);
+
+    DateTime dayStart = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      0,
+      0,
+    );
+    DateTime dayEnd = dayStart.add(const Duration(days: 1));
+
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance
+            .collection('reserves')
+            .where('campusid', isEqualTo: widget.campusid)
+            .where(
+              'start_time',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart),
+            )
+            .where('start_time', isLessThan: Timestamp.fromDate(dayEnd))
+            .get();
+
+    List<DocumentSnapshot> reservedDocs = snapshot.docs;
+
+    List<Map<String, DateTime>> reservedSlots =
+        reservedDocs.map((doc) {
+          return {
+            'start': (doc['start_time'] as Timestamp).toDate(),
+            'end': (doc['end_time'] as Timestamp).toDate(),
+          };
+        }).toList();
+
+    List<String> available =
+        allSlots.where((slot) {
+          final times = slot.split(' - ');
+          final start = times[0].split(':').map(int.parse).toList();
+          final end = times[1].split(':').map(int.parse).toList();
+
+          final slotStart = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            start[0],
+            start[1],
+          );
+          final slotEnd = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            end[0],
+            end[1],
+          );
+
+          for (var r in reservedSlots) {
+            if (slotStart.isBefore(r['end']!) && slotEnd.isAfter(r['start']!)) {
+              return false;
+            }
+          }
+          return true;
+        }).toList();
+
+    setState(() {
+      timeSlots = available;
+      selectedTime = null;
+    });
+  }
+
   Future<void> _selectDate(BuildContext context) async {
+    bool isSundayClosed = widget.campus["time"].contains("ปิดวันอาทิตย์");
+    DateTime initDate = selectedDate;
+    if (isSundayClosed && selectedDate.weekday == DateTime.sunday) {
+      initDate = selectedDate.add(const Duration(days: 1));
+    }
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
+      initialDate: initDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      selectableDayPredicate: (DateTime day) {
+        if (isSundayClosed) {
+          return day.weekday != DateTime.sunday;
+        }
+        return true;
+      },
     );
+
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
       });
+      await loadAvailableTimeSlots();
+    }
+  }
+
+  Future<void> reservePlace() async {
+    if (selectedTime == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please select time slot")));
+      return;
+    }
+
+    try {
+      final times = selectedTime!.split(' - ');
+      final startTimeParts = times[0].split(':');
+      final endTimeParts = times[1].split(':');
+
+      final DateTime startDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        int.parse(startTimeParts[0]),
+        int.parse(startTimeParts[1]),
+      );
+      final DateTime endDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        int.parse(endTimeParts[0]),
+        int.parse(endTimeParts[1]),
+      );
+
+      await FirebaseFirestore.instance.collection('reserves').add({
+        'creator': FirebaseAuth.instance.currentUser?.uid,
+        'campusid': widget.campusid,
+        'start_time': Timestamp.fromDate(startDateTime),
+        'end_time': Timestamp.fromDate(endDateTime),
+        'created_at': Timestamp.now(),
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("จองสำเร็จ!")));
+      Navigator.pop(context);
+    } catch (e) {
+      print("Error booking: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("เกิดข้อผิดพลาดในการจอง")));
     }
   }
 
@@ -50,15 +227,11 @@ class _RegisreservationState extends State<Regisreservation> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ปุ่ม back
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
-                  // โลโก้ + ข้อความ
                   const CircleAvatar(
                     radius: 28,
                     backgroundImage: AssetImage('assets/logo.png'),
@@ -88,27 +261,21 @@ class _RegisreservationState extends State<Regisreservation> {
           ),
         ),
       ),
-
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 16),
-
-            // รูป
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
-                widget.campus["image"],
+                widget.campus["photo"],
                 width: 300,
                 height: 160,
                 fit: BoxFit.cover,
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // วันที่
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -130,10 +297,7 @@ class _RegisreservationState extends State<Regisreservation> {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // Time Slot
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -143,17 +307,24 @@ class _RegisreservationState extends State<Regisreservation> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: selectedTime,
-                    hint: Text('Choose your time'),
+                    hint: const Text('Choose your time'),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                     ),
                     items:
-                        timeSlots.map((slot) {
-                          return DropdownMenuItem(
-                            value: slot,
-                            child: Text(slot),
-                          );
-                        }).toList(),
+                        timeSlots.isEmpty
+                            ? [
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text("ไม่มีเวลาว่าง"),
+                              ),
+                            ]
+                            : timeSlots.map((slot) {
+                              return DropdownMenuItem(
+                                value: slot,
+                                child: Text(slot),
+                              );
+                            }).toList(),
                     onChanged: (value) {
                       setState(() {
                         selectedTime = value;
@@ -163,23 +334,9 @@ class _RegisreservationState extends State<Regisreservation> {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // ปุ่ม Confirm
             ElevatedButton(
-              onPressed: () {
-                // จะเอาไปทำอะไรต่อ เช่นบันทึกลง DB หรือ print ค่า
-                if (selectedTime != null) {
-                  print(
-                    'Booked: ${widget.campus["name"]} on ${DateFormat('dd/MM/yyyy').format(selectedDate)} at $selectedTime',
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select time slot")),
-                  );
-                }
-              },
+              onPressed: reservePlace,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF57A89A),
                 foregroundColor: Colors.white,
@@ -196,8 +353,6 @@ class _RegisreservationState extends State<Regisreservation> {
           ],
         ),
       ),
-
-      // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF9DE1DB),
         showSelectedLabels: false,

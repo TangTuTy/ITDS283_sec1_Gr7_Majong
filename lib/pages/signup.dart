@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/pages/login.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   final emailController = TextEditingController();
   final nameController = TextEditingController();
+  final phoneController = TextEditingController(); // ✅ เพิ่ม phone
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final universityController = TextEditingController();
@@ -23,9 +25,45 @@ class _SignUpPageState extends State<SignUpPage> {
       try {
         final credential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-              email: emailController.text,
-              password: passwordController.text,
+              email: emailController.text.trim(),
+              password: passwordController.text.trim(),
             );
+
+        // ✅ บันทึกข้อมูลเพิ่มเติมลง Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(credential.user!.uid)
+            .set({
+              'name': nameController.text.trim(),
+              'email': emailController.text.trim(),
+              'phone': phoneController.text.trim(),
+              'university': universityController.text.trim(),
+            });
+
+        await FirebaseAuth.instance.signOut();
+
+        showDialog(
+          context: context,
+          builder:
+              (_) => AlertDialog(
+                title: const Text('Success'),
+                content: const Text('Account created successfully!'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // ปิด dialog
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+        );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
           print('The password provided is too weak.');
@@ -34,30 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
         }
       } catch (e) {
         print(e);
-      } // จำลองการสมัครเสร็จ
-      await FirebaseAuth.instance.signOut();
-      showDialog(
-        context: context,
-        builder:
-            (_) => AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Account created successfully!'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context); // ปิด dialog
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-      );
+      }
     }
   }
 
@@ -103,6 +118,14 @@ class _SignUpPageState extends State<SignUpPage> {
                     controller: nameController,
                     decoration: const InputDecoration(labelText: 'Name'),
                     validator: (value) => validateField(value, 'name'),
+                  ),
+
+                  // Phone ✅
+                  TextFormField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(labelText: 'Phone'),
+                    keyboardType: TextInputType.phone,
+                    validator: (value) => validateField(value, 'phone number'),
                   ),
 
                   // Password

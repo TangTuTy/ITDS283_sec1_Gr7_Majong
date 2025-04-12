@@ -94,7 +94,7 @@ class _InformationPageState extends State<InformationPage> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.asset(
-                        widget.campus["image"],
+                        widget.campus["photo"],
                         width: 120,
                         height: 100,
                         fit: BoxFit.cover,
@@ -114,7 +114,7 @@ class _InformationPageState extends State<InformationPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            widget.campus["location"],
+                            widget.campus["location-detail"],
                             style: const TextStyle(fontSize: 14),
                           ),
                         ],
@@ -155,10 +155,10 @@ class _InformationPageState extends State<InformationPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 56),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text("เบอร์ติดต่อ: 028002680"),
+                  children: [
+                    Text("เบอร์ติดต่อ: ${widget.campus["phone"]}"),
                     SizedBox(height: 4),
-                    Text("เวลาทำการ: 8:00–19:00 (ปิดวันอาทิตย์)"),
+                    Text(widget.campus["time"]),
                   ],
                 ),
               ),

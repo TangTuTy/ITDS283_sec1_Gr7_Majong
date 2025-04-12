@@ -172,7 +172,7 @@ class _HomepageState extends State<Homepage> {
           BottomNavigationBarItem(
             icon: IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () => navigateToprofile(context), // เปลี่ยนที่นี่
+              onPressed: () => navigateToprofile(context),
             ),
             label: '',
           ),
