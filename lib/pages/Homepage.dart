@@ -1,11 +1,13 @@
+// นำเข้า packages ที่จำเป็น
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+
 import 'package:myapp/pages/Reservation.dart';
 import 'package:myapp/pages/BookingHistory.dart';
 import 'package:myapp/pages/profile.dart';
-import 'package:sqflite/sqflite.dart'; // เพิ่มการ import หน้า BookingHistory
-import 'package:path/path.dart' as p;
 
-//import 'package:myapp/pages/reservation_pageDB.dart';
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
 
@@ -14,90 +16,85 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  Database? _db;
-  Database? _db2;
+  Map<String, dynamic>? latestBooking;
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _initDatabase();
+    fetchLatestBooking();
   }
 
-  Future<void> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = p.join(dbPath, 'campus.db');
+  Future<void> fetchLatestBooking() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
 
-    _db = await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-      CREATE TABLE campus (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        image TEXT,
-        name TEXT,
-        location TEXT
-      )
-      ''');
-      },
-    );
+    try {
+      final reserveSnap =
+          await FirebaseFirestore.instance
+              .collection('reserves')
+              .where('creator', isEqualTo: uid)
+              .orderBy('start_time', descending: true)
+              .limit(1)
+              .get();
 
-    // ✅ เช็คว่ามีข้อมูลใน table หรือยัง
-    final countResult = await _db!.rawQuery(
-      'SELECT COUNT(*) as count FROM campus',
-    );
-    final count = Sqflite.firstIntValue(countResult);
+      if (reserveSnap.docs.isEmpty) {
+        setState(() {
+          latestBooking = null;
+          isLoading = false;
+        });
+        return;
+      }
 
-    if (count == 0) {
-      // 🟢 ถ้ายังไม่มีข้อมูล ค่อย insert
-      await _db?.rawInsert('''
-      INSERT INTO campus (image, name, location)
-      VALUES
-        ('assets/mu/mu2.jpg', 'Mahidol campus', '999 ถ.พระราม 4 ต.ศาลายา อ.พุทธมณฑล จ.นครปฐม 73170'),
-        ('assets/tu/tu2.jpeg', 'Thammasat campus', '99 หมู่ 18 ถ.พหลโยธิน ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120'),
-        ('assets/ku/ku2.jpg', 'Kasetsart campus', '50 ถนนงามวงศ์วาน บางเขน เขตบางเขน กรุงเทพฯ 10900'),
-        ('assets/cu/cu1.jpg', 'Chula campus', '254 ถนนพญาไท แขวงวังใหม่ เขตปทุมวัน กรุงเทพฯ 10330')
-    ''');
+      final data = reserveSnap.docs.first.data();
+      final campusDoc =
+          await FirebaseFirestore.instance
+              .collection('campus')
+              .doc(data['campusid'])
+              .get();
+
+      final campusData = campusDoc.data();
+      if (campusData != null) {
+        setState(() {
+          latestBooking = {
+            'start_time': data['start_time'],
+            'end_time': data['end_time'],
+            'campus_name': campusData['name'],
+            'campus_location': campusData['location-detail'],
+            'campus_photo': campusData['photo'],
+          };
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("🔥 ERROR: $e");
+      setState(() {
+        isLoading = false;
+      });
     }
-
-    final path2 = p.join(dbPath, 'reserved.db');
-    _db2 = await openDatabase(
-      path2,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-      CREATE TABLE reserved (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        campus_id INTEGER,
-        timestamp DATETIME,
-        FOREIGN KEY (campus_id) REFERENCES Campus(id)
-      )
-      ''');
-      },
-    );
   }
 
-  void navigateToReservation(BuildContext context) {
-    Navigator.push(
+  void navigateToReservation(BuildContext context) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ReservationPage()),
     );
+    fetchLatestBooking();
   }
 
-  void navigateToBookingHistory(BuildContext context) {
-    Navigator.push(
+  void navigateToBookingHistory(BuildContext context) async {
+    await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const BookingHistoryPage(),
-      ), // เพิ่มการเชื่อมไปหน้า BookingHistory
+      MaterialPageRoute(builder: (context) => const BookingHistoryPage()),
     );
+    // โหลดใหม่เมื่อกลับมา
+    fetchLatestBooking();
   }
 
   void navigateToprofile(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const Profilepage(),
-      ), // เพิ่มการเชื่อมไปหน้า BookingHistory
+      MaterialPageRoute(builder: (context) => const Profilepage()),
     );
   }
 
@@ -108,7 +105,7 @@ class _HomepageState extends State<Homepage> {
         preferredSize: const Size.fromHeight(100),
         child: AppBar(
           backgroundColor: const Color(0xFF397D75),
-          automaticallyImplyLeading: false, // ไม่แสดงปุ่ม back โดยอัตโนมัติ
+          automaticallyImplyLeading: false,
           flexibleSpace: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -136,7 +133,7 @@ class _HomepageState extends State<Homepage> {
                         ),
                       ),
                       Text(
-                        'information',
+                        'มาจอง',
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
@@ -148,8 +145,6 @@ class _HomepageState extends State<Homepage> {
         ),
       ),
       backgroundColor: Colors.white,
-
-      // BottomNavigationBar แบบที่มีโลโก้ตรงกลาง
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF9DE1DB),
         showSelectedLabels: false,
@@ -164,7 +159,7 @@ class _HomepageState extends State<Homepage> {
           ),
           BottomNavigationBarItem(
             icon: CircleAvatar(
-              radius: 20, // ขนาดของ CircleAvatar
+              radius: 20,
               backgroundImage: AssetImage('assets/logo.png'),
             ),
             label: '',
@@ -178,11 +173,10 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: Column(
           children: [
-            // Reserve & History buttons
+            // ปุ่ม Reserve และ Booking History
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
               child: Row(
@@ -203,15 +197,16 @@ class _HomepageState extends State<Homepage> {
                                 offset: Offset(2, 2),
                               ),
                             ],
+                            color: Colors.white,
                           ),
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(15),
                           child: Column(
                             children: [
                               ClipOval(
                                 child: Image.asset(
                                   'assets/room.png',
-                                  width: 100,
-                                  height: 100,
+                                  width: 130,
+                                  height: 130,
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -226,47 +221,119 @@ class _HomepageState extends State<Homepage> {
                       ],
                     ),
                   ),
-                  Column(
-                    children: [
-                      GestureDetector(
-                        onTap:
-                            () => navigateToBookingHistory(
-                              context,
-                            ), // เพิ่มการเชื่อมไปหน้า BookingHistory
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.black),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(2, 2),
-                              ),
-                            ],
+                  GestureDetector(
+                    onTap: () => navigateToBookingHistory(context),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.black),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
                           ),
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            children: [
-                              Image.asset(
-                                'assets/calendar.png',
-                                width: 100,
-                                height: 100,
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Booking History',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ),
+                        ],
+                        color: Colors.white,
                       ),
-                    ],
+                      padding: const EdgeInsets.all(15),
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            'assets/calendar.png',
+                            width: 130,
+                            height: 130,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Booking History',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+
+            const SizedBox(height: 16),
+
+            if (isLoading)
+              const CircularProgressIndicator()
+            else if (latestBooking != null) ...[
+              ElevatedButton(
+                onPressed: () => navigateToBookingHistory(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAEA9),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text(
+                  'Recent Reservation',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 35),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black26),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 6),
+                    ],
+                    color: Colors.white,
+                  ),
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                        child: Image.asset(
+                          latestBooking!['campus_photo'],
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              latestBooking!['campus_name'],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(latestBooking!['campus_location']),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Date : ${DateFormat('dd/MM/yyyy').format(latestBooking!['start_time'].toDate())}",
+                            ),
+                            Text(
+                              "Time : ${DateFormat('HH.mm').format(latestBooking!['start_time'].toDate())} - ${DateFormat('HH.mm').format(latestBooking!['end_time'].toDate())}",
+                            ),
+                            Text("Branch : ${latestBooking!['campus_name']}"),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

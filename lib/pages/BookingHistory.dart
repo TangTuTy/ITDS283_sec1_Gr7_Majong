@@ -62,6 +62,7 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
             'campus_name': campusData['name'],
             'campus_location': campusData['location-detail'],
             'campus_photo': campusData['photo'],
+            'reserve_id': doc.id, // สำหรับลบ
           });
         }
       }
@@ -75,6 +76,28 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> cancelBooking(String reserveId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('reserves')
+          .doc(reserveId)
+          .delete();
+
+      setState(() {
+        bookings.removeWhere((booking) => booking['reserve_id'] == reserveId);
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ยกเลิกการจองสำเร็จ')));
+    } catch (e) {
+      print("❌ Error cancelling booking: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('เกิดข้อผิดพลาดในการยกเลิก')),
+      );
     }
   }
 
@@ -243,7 +266,42 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
-                                    // TODO: เพิ่มฟังก์ชันยกเลิก
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: const Text(
+                                              'ยืนยันการยกเลิก',
+                                            ),
+                                            content: const Text(
+                                              'คุณต้องการยกเลิกการจองนี้หรือไม่?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop(),
+                                                child: const Text('ยกเลิก'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  cancelBooking(
+                                                    item['reserve_id'],
+                                                  );
+                                                },
+                                                child: const Text(
+                                                  'ยืนยัน',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,

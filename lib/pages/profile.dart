@@ -81,7 +81,7 @@ class _ProfilepageState extends State<Profilepage> {
                         ),
                       ),
                       Text(
-                        'information',
+                        'มาจอง',
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
@@ -114,11 +114,7 @@ class _ProfilepageState extends State<Profilepage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.person_add_alt,
-                  size: 100,
-                  color: Colors.black45,
-                ),
+                const Icon(Icons.person, size: 100, color: Colors.black45),
                 const SizedBox(height: 10),
                 Text(
                   name,
@@ -170,7 +166,10 @@ class _ProfilepageState extends State<Profilepage> {
                       vertical: 14,
                     ),
                   ),
-                  child: const Text('Log out', style: TextStyle(fontSize: 16)),
+                  child: const Text(
+                    'Log out',
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
                 ),
               ],
             ),
