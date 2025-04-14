@@ -158,11 +158,11 @@ class _ReservationPage extends State<ReservationPage> {
                                           child: Text(
                                             place['location-detail']!,
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 12,
                                               color: Colors.grey[600],
                                             ),
                                             overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
+                                            maxLines: 3,
                                           ),
                                         ),
                                       ],
@@ -187,7 +187,12 @@ class _ReservationPage extends State<ReservationPage> {
                                     ),
                                   );
                                 },
+
                                 child: const Text('จอง'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF397D75),
+                                  foregroundColor: Colors.white,
+                                ),
                               ),
                             ],
                           ),

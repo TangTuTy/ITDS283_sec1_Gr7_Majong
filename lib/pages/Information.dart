@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+// ... import เหมือนเดิม ...
 
 class InformationPage extends StatefulWidget {
   final Map<String, dynamic> campus;
@@ -12,11 +15,15 @@ class _InformationPageState extends State<InformationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
+      // ✅ AppBar
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
         child: AppBar(
           backgroundColor: const Color(0xFF397D75),
           automaticallyImplyLeading: false,
+          elevation: 0,
           flexibleSpace: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -24,17 +31,12 @@ class _InformationPageState extends State<InformationPage> {
                 vertical: 10,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ปุ่ม back
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
-                  // โลโก้ + ข้อความ
                   const CircleAvatar(
                     radius: 28,
                     backgroundImage: AssetImage('assets/logo.png'),
@@ -65,109 +67,150 @@ class _InformationPageState extends State<InformationPage> {
         ),
       ),
 
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          // ✅ รองรับเนื้อหาเกินจอ
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
+      // ✅ Body
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 📸 รูป + ชื่อ + ที่ตั้ง
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(2, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      widget.campus["photo"],
+                      width: 120,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.campus["name"],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.campus["location-detail"],
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-              // ✅ กล่องข้อมูล (เฉพาะรูป ชื่อ และที่ตั้ง)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(16),
+            const SizedBox(height: 24),
+
+            // 🗺️ แผนที่
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(2, 2),
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        widget.campus["photo"],
-                        width: 120,
-                        height: 100,
-                        fit: BoxFit.cover,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(
+                        widget.campus["location"].latitude,
+                        widget.campus["location"].longitude,
                       ),
+                      zoom: 17,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.campus["name"],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.campus["location-detail"],
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
+                    markers: {
+                      Marker(
+                        markerId: const MarkerId("campus"),
+                        position: LatLng(
+                          widget.campus["location"].latitude,
+                          widget.campus["location"].longitude,
+                        ),
                       ),
-                    ),
-                  ],
+                    },
+                    zoomControlsEnabled: false,
+                    myLocationButtonEnabled: false,
+                  ),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // ✅ แผนที่
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.location_pin,
-                      size: 32,
-                      color: Colors.green,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        widget.campus["mapUrl"] ?? "ไม่มีลิงก์แผนที่",
-                        style: const TextStyle(fontSize: 14),
+            // 📞 เบอร์ติดต่อ + เวลา
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "ข้อมูลเพิ่มเติม",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.phone, size: 18, color: Colors.teal),
+                      const SizedBox(width: 8),
+                      Text(widget.campus["phone"]),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        size: 18,
+                        color: Colors.teal,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 8),
+                      Text(widget.campus["time"]),
+                    ],
+                  ),
+                ],
               ),
+            ),
 
-              const SizedBox(height: 16),
-
-              // ✅ เบอร์ติดต่อ + เวลาเปิดปิด
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 56),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("เบอร์ติดต่อ: ${widget.campus["phone"]}"),
-                    SizedBox(height: 4),
-                    Text(widget.campus["time"]),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
 
-      // Bottom Navigation
+      // ✅ BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF9DE1DB),
         showSelectedLabels: false,
