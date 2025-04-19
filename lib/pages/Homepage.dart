@@ -87,7 +87,6 @@ class _HomepageState extends State<Homepage> {
       context,
       MaterialPageRoute(builder: (context) => const BookingHistoryPage()),
     );
-    // โหลดใหม่เมื่อกลับมา
     fetchLatestBooking();
   }
 
@@ -174,167 +173,173 @@ class _HomepageState extends State<Homepage> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // ปุ่ม Reserve และ Booking History
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  GestureDetector(
-                    onTap: () => navigateToReservation(context),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            children: [
+              // ปุ่ม Reserve และ Booking History
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 24,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    GestureDetector(
+                      onTap: () => navigateToReservation(context),
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.black),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(2, 2),
+                                ),
+                              ],
+                              color: Colors.white,
+                            ),
+                            padding: const EdgeInsets.all(15),
+                            child: Column(
+                              children: [
+                                ClipOval(
+                                  child: Image.asset(
+                                    'assets/room.png',
+                                    width: 130,
+                                    height: 130,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Reserve a Room',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => navigateToBookingHistory(context),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.black),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(2, 2),
+                            ),
+                          ],
+                          color: Colors.white,
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/calendar.png',
+                              width: 130,
+                              height: 130,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Booking History',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              if (isLoading)
+                const CircularProgressIndicator()
+              else if (latestBooking != null) ...[
+                ElevatedButton(
+                  onPressed: () => navigateToBookingHistory(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAEA9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'Recent Reservation',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 35),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black26),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 6),
+                      ],
+                      color: Colors.white,
+                    ),
                     child: Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.black),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(2, 2),
-                              ),
-                            ],
-                            color: Colors.white,
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
                           ),
-                          padding: const EdgeInsets.all(15),
+                          child: Image.asset(
+                            latestBooking!['campus_photo'],
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipOval(
-                                child: Image.asset(
-                                  'assets/room.png',
-                                  width: 130,
-                                  height: 130,
-                                  fit: BoxFit.cover,
+                              Text(
+                                latestBooking!['campus_name'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              Text(latestBooking!['campus_location']),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Reserve a Room',
-                                style: TextStyle(fontSize: 16),
+                              Text(
+                                "Date : ${DateFormat('dd/MM/yyyy').format(latestBooking!['start_time'].toDate())}",
                               ),
+                              Text(
+                                "Time : ${DateFormat('HH.mm').format(latestBooking!['start_time'].toDate())} - ${DateFormat('HH.mm').format(latestBooking!['end_time'].toDate())}",
+                              ),
+                              Text("Branch : ${latestBooking!['campus_name']}"),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => navigateToBookingHistory(context),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.black),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                        color: Colors.white,
-                      ),
-                      padding: const EdgeInsets.all(15),
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/calendar.png',
-                            width: 130,
-                            height: 130,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Booking History',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            if (isLoading)
-              const CircularProgressIndicator()
-            else if (latestBooking != null) ...[
-              ElevatedButton(
-                onPressed: () => navigateToBookingHistory(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAEA9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
                 ),
-                child: const Text(
-                  'Recent Reservation',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 35),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black26),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 6),
-                    ],
-                    color: Colors.white,
-                  ),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
-                        ),
-                        child: Image.asset(
-                          latestBooking!['campus_photo'],
-                          height: 150,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              latestBooking!['campus_name'],
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(latestBooking!['campus_location']),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Date : ${DateFormat('dd/MM/yyyy').format(latestBooking!['start_time'].toDate())}",
-                            ),
-                            Text(
-                              "Time : ${DateFormat('HH.mm').format(latestBooking!['start_time'].toDate())} - ${DateFormat('HH.mm').format(latestBooking!['end_time'].toDate())}",
-                            ),
-                            Text("Branch : ${latestBooking!['campus_name']}"),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

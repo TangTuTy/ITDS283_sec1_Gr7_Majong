@@ -5,10 +5,9 @@ import 'package:myapp/pages/RegisReservation.dart';
 import 'package:myapp/pages/campusdb.dart';
 import 'package:myapp/pages/profile.dart';
 import 'package:myapp/pages/Homepage.dart';
-import 'package:myapp/pages/information.dart'; // ✅ เพิ่มหน้านี้
+import 'package:myapp/pages/information.dart';
 
 class ReservationPage extends StatefulWidget {
-  // final Database database;
   ReservationPage({super.key});
 
   @override
@@ -28,9 +27,7 @@ class _ReservationPage extends State<ReservationPage> {
   void navigateToprofile(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const Profilepage(),
-      ), // เพิ่มการเชื่อมไปหน้า BookingHistory
+      MaterialPageRoute(builder: (context) => const Profilepage()),
     );
   }
 
@@ -38,7 +35,7 @@ class _ReservationPage extends State<ReservationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 100, // 👈 ใช้แทน preferredSize
+        toolbarHeight: 100,
         backgroundColor: const Color(0xFF397D75),
         automaticallyImplyLeading: false,
         flexibleSpace: SafeArea(
@@ -87,7 +84,6 @@ class _ReservationPage extends State<ReservationPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // รายการจอง
             Expanded(
               child: StreamBuilder(
                 stream: campusdb.getcampus(),
@@ -114,66 +110,63 @@ class _ReservationPage extends State<ReservationPage> {
                           ),
                           child: Row(
                             children: [
-                              // ✅ คลิกฝั่งซ้ายไปหน้า information
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => InformationPage(
-                                            campus:
-                                                campus[index].data()
-                                                    as Map<String, dynamic>,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.asset(
-                                        place["photo"],
-                                        width: 120,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    // ข้อมูล
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          place['name']!,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 150,
-                                          child: Text(
-                                            place['location-detail']!,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => InformationPage(
+                                              campus:
+                                                  campus[index].data()
+                                                      as Map<String, dynamic>,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 3,
-                                          ),
+                                      ),
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.asset(
+                                          place["photo"],
+                                          width: 120,
+                                          height: 100,
+                                          fit: BoxFit.cover,
                                         ),
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              place['name']!,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              place['location-detail']!,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 3,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-
-                              const Spacer(),
-
-                              // ปุ่มจอง
+                              const SizedBox(width: 10),
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -187,10 +180,9 @@ class _ReservationPage extends State<ReservationPage> {
                                     ),
                                   );
                                 },
-
                                 child: const Text('จอง'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF397D75),
+                                  backgroundColor: const Color(0xFF397D75),
                                   foregroundColor: Colors.white,
                                 ),
                               ),
@@ -200,7 +192,7 @@ class _ReservationPage extends State<ReservationPage> {
                       },
                     );
                   } else {
-                    return Text("No campus");
+                    return const Center(child: Text("No campus"));
                   }
                 },
               ),
@@ -209,7 +201,6 @@ class _ReservationPage extends State<ReservationPage> {
         ),
       ),
 
-      // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF9DE1DB),
         showSelectedLabels: false,

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/pages/profile.dart';
 
 class Regisreservation extends StatefulWidget {
   final campus;
@@ -20,6 +21,12 @@ class _RegisreservationState extends State<Regisreservation> {
   late DateTime selectedDate;
   List<String> timeSlots = [];
   String? selectedTime;
+  void navigateToprofile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Profilepage()),
+    );
+  }
 
   @override
   void initState() {
@@ -375,7 +382,13 @@ class _RegisreservationState extends State<Regisreservation> {
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
+          BottomNavigationBarItem(
+            icon: IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () => navigateToprofile(context),
+            ),
+            label: '',
+          ),
         ],
       ),
     );
